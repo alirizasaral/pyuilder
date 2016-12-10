@@ -1,9 +1,16 @@
-from docker import Client
+from docker import Client, tls
 from io import BytesIO
+import platform
+import os
 
 def print_docker_reponse(response):
 	for line in response:
-		print line
+		try:
+			stream = eval(line)
+			for key, value in stream.iteritems():
+				print "[" + key + "] " + str(value)
+		except:
+			print line
 
 class DockerFileBuilder:
 
@@ -45,9 +52,17 @@ class DockerController:
 		self.modules.append(module)
 
 	def start(self):
-		self.cli = Client(base_url='unix://var/run/docker.sock')
+		self.cli = self.create_client()
 		self.build_container_image(DockerController.WORKSPACE_IMAGE)
 		self.start_container(DockerController.WORKSPACE_IMAGE)
+
+	def create_client(self):
+		if platform.system() == 'Windows':
+			certs = os.environ['DOCKER_CERT_PATH']
+			tls_config = tls.TLSConfig(  client_cert=(certs + '\\cert.pem', certs + '\\key.pem'), verify=certs + '\\ca.pem')
+			return Client(base_url=os.environ['DOCKER_HOST'], version="auto", tls=tls_config)
+		else:
+			return Client(base_url='unix://var/run/docker.sock', version="auto")
 
 	def build_container_image(self, workspaceImage):
 		dockerfile = DockerFileBuilder().inherits("ubuntu").maintainer("Ali Riza Saral <aliriza.saral@gmail.com>")		
@@ -63,9 +78,24 @@ class DockerController:
 		))
 
 	def start_container(self, workspaceImage):
-		container = self.cli.create_container(image=workspaceImage, command='bash', name="workspace", detach=True, stdin_open=True, tty=True)
+		volumes_for_modules, binds_for_modules = self.get_volumes_for_modules()
+		print "starting with volumes " + str(volumes_for_modules)
+		if len(volumes_for_modules) > 0:
+			container = self.cli.create_container(image=workspaceImage, command='bash', name="workspace", detach=True, stdin_open=True, tty=True, volumes=volumes_for_modules, host_config=self.cli.create_host_config(binds=binds_for_modules))
+		else:
+			container = self.cli.create_container(image=workspaceImage, command='bash', name="workspace", detach=True, stdin_open=True, tty=True)
 		self.container_id = container.get('Id')
 		response = self.cli.start(container=self.container_id)
+
+	def get_volumes_for_modules(self):
+		volumes = []
+		binds = []
+		for module in self.modules:
+			if "get_volumes" in dir(module):
+				for volume in module.get_volumes():
+					volumes.append(volume.split(':')[1])
+					binds.append(volume)
+		return volumes, binds
 
 	def execute(self, command):
 		print(command)
@@ -111,15 +141,16 @@ class WorkspaceManager:
 @injectDockerController
 class MVN:
 
-	def __init__(self):
-		pass
+	def __init__(self, **kwargs):
+		self.repository_path = kwargs.get("repository_path")
+
+	def get_volumes(self):
+		if self.repository_path:
+			return [self.repository_path + ":/root/.m2/repository/"]
+		else:
+			return []
 
 	def get_load_statements(self):
-		#self.ctl.execute("add-apt-repository -y ppa:webupd8team/java")
-		#self.ctl.execute("apt-get update")
-		#self.ctl.execute("echo debconf shared/accepted-oracle-license-v1-1 select true | sudo debconf-set-selections")
-		#self.ctl.execute("echo debconf shared/accepted-oracle-license-v1-1 seen true | sudo debconf-set-selections")
-		#self.ctl.execute("apt-get -y install oracle-java7-installer ")
 		return ["apt-get -y install openjdk-8-jdk",
 				"apt-get -y install maven"]
 
@@ -135,9 +166,24 @@ class GitCloneJob:
 
 	def __init__(self, url):
 		self.url = url
+		self.options = {}
+
+	def configure(self, option, value):
+		self.options[option] = value
+		return self
+
+	def print_options(self):
+		if self.options:
+			result = "-c"
+			for option, value in self.options.iteritems():
+				result += " " + option + "=" + value
+			return result
+		else:
+			return ""
+
 
 	def to(self, folder):
-		self.ctl.execute("git clone " + self.url + " " + folder.pathname())
+		self.ctl.execute("git " + self.print_options() + " clone " + self.url + " " + folder.pathname())
 
 @injectDockerController
 class Git:
