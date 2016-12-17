@@ -10,6 +10,7 @@ import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.saral.model.TimeTrackRecord;
@@ -30,7 +31,9 @@ public class TimeTrackController {
     }
 	
     @RequestMapping("/records")
-    public Collection<TimeTrackRecord> get(String email) {
+    public Collection<TimeTrackRecord> get(String email, 
+    									   @RequestParam(value = "offset", defaultValue = "0", required = false) int offset, 
+    									   @RequestParam(value = "length", defaultValue = "-1", required = false) int length) {
     	return email == null ? service.findAll() : service.findByEmployee(email);
     }
     
