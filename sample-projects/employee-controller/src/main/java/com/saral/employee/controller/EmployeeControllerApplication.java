@@ -1,4 +1,4 @@
-package com.saral;
+package com.saral.employee.controller;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

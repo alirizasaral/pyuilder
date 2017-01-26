@@ -1,17 +1,15 @@
 /**
  * 
  */
-package com.saral.model;
+package com.saral.employee.controller.model;
 
 import java.util.Date;
-
-import org.springframework.hateoas.ResourceSupport;
 
 /**
  * @author Ali Riza Saral <Ali-Riza-Savas.Saral@allianz.at>
  *
  */
-public class TimeTrackRecord extends ResourceSupport {
+public class TimeTrackRecord {
 	
 	private Date start;
 	private Date end; 

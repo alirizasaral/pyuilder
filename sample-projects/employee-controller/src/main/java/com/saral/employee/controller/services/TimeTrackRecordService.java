@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.saral.services;
+package com.saral.employee.controller.services;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -11,7 +11,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.stereotype.Component;
 
-import com.saral.model.TimeTrackRecord;
+import com.saral.employee.controller.model.TimeTrackRecord;
 
 /**
  * @author Ali Riza Saral <Ali-Riza-Savas.Saral@allianz.at>
