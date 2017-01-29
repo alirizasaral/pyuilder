@@ -39,31 +39,6 @@ class VolumesTest(unittest.TestCase):
                          }, Volumes().add("/src", '/home/user1')
                                      .add("/tmp", "/tmp/pyuilder")
                                      .add("/src", '/home/user2').as_dict())
-"""
-class UtilsTest(unittest.TestCase):
 
-    def test_get_proxy_parameters_from_env(self):
-        self.assertEqual({'PROXY_HOST': 'smtpproxy2.allianz-ceema.com',
-                          'PROXY_PORT': '80',
-                          'PROXY_PROTOCOL': "http",
-                          'NO_PROXY': '127.0.0.1,localhost'}, get_proxy_parameters_from_env())
-
-class ContainersTest(unittest.TestCase):
-
-    def test_run_multiple_commands(self):
-      dockerClient = DockerController().cli
-      dockerClient.containers.run('ubuntu', ['echo', 'hello2'], detach=False, stdin_open=True, tty=True)
-
-
-class MiscTest(unittest.TestCase):
-
-    def test_container_with_multiple_operations(self):
-        controller = DockerController()
-        #op = ContainerOperationOnFolder('maven:3.3.9-jdk-8-alpine', ['ls -al', 'echo {message}'])
-        op = ContainerOperationOnFolder('alirizasaral/maven-with-proxy:3', ['mvn --version', 'echo {message}'])
-        output, cmd = op.apply(controller.cli, ['/c/Users/pyuilder/m2:/tmp'], message="helloworld")
-        print output
-        self.assertTrue(True)
-"""
 if __name__ == '__main__':
     unittest.main()
